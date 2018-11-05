@@ -13,11 +13,40 @@ app.use(cors())
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
-
 app.use(express.static('public'))
+
+
+//Routes
+app.post('/api/exercise/new-user', (req, res) => {
+  //Handle form data
+  //Create new user and save to db
+  //Return object with username and _id
+})
+
+app.get('api/exercise/users', (req, res) => {
+  //Get list of all users
+  //Display usernames and _ids in array
+})
+
+app.post('/api/exercise/add', (req, res) => {
+  //Handle form data _id, exercise, duration, (optional)date
+  //Return new user object
+})
+
+app.get('/api/exercise/log/:userId', (req, res) => {
+  //Return _id's exercise log as array with total exercise count
+  //If req.queries contains `from` & `to` (yyyy-mm-dd), limit by those, else limit by `limit` (int)
+  res.send({
+    from: req.query('from'),
+    to: req.query('to'),
+    limit: req.query('limit')
+  })
+})
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
+
 
 
 // Not found middleware
