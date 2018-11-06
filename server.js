@@ -8,6 +8,8 @@ require('dotenv').config();
 const mongoose = require('mongoose')
 mongoose.connect(process.env.MLAB_URI)
 
+const User = require('./models/User');
+
 app.use(cors())
 
 app.use(bodyParser.urlencoded({extended: false}))
@@ -19,8 +21,30 @@ app.use(express.static('public'))
 //Routes
 app.post('/api/exercise/new-user', (req, res) => {
   //Handle form data
+  let user = new User({
+    username: req.body.username
+  });
+  User.find({username: user.username}, (err, doc) => {
+    if (err) {
+      res.end(err)
+    } else if (doc.length){
+      res.end("Error: username already in use")
+    } else {
+      user.save((err, savedUser) => {
+        if (err) {
+          res.end(err);
+        } else {
+          //Return object with username and _id
+          res.json({
+            _id: savedUser._id,
+            username: savedUser.username
+          });
+        }
+      })
+    }
+  })
   //Create new user and save to db
-  //Return object with username and _id
+  
 })
 
 app.get('api/exercise/users', (req, res) => {
@@ -30,17 +54,28 @@ app.get('api/exercise/users', (req, res) => {
 
 app.post('/api/exercise/add', (req, res) => {
   //Handle form data _id, exercise, duration, (optional)date
-  //Return new user object
+  //Update user and return updated User object
 })
 
-app.get('/api/exercise/log/:userId', (req, res) => {
+app.get('/api/exercise/log?:userId', (req, res) => {
   //Return _id's exercise log as array with total exercise count
-  //If req.queries contains `from` & `to` (yyyy-mm-dd), limit by those, else limit by `limit` (int)
-  res.send({
-    from: req.query('from'),
-    to: req.query('to'),
-    limit: req.query('limit')
-  })
+  console.log(req.query);
+  User.findById(req.query.userId, (err, user) => {
+    if(err){
+      res.send(err);
+    } else {
+      let log = user.exercises;
+      if(req.query.from && req.query.to){
+        //Check for `from` & `to` (yyyy-mm-dd) constraints
+      } else if (req.query.limit){
+        //Check for `limit` (int) constraint
+      }
+      res.json({
+        exerciseCount: log.length,
+        exercises: log
+      });
+    }
+  });
 })
 
 app.get('/', (req, res) => {
