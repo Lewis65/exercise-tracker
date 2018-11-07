@@ -6,4 +6,6 @@ const schema = new mongoose.Schema({
     date: Date
 }, {timestamps: true});
 
-module.exports = schema;
+const Exercise = mongoose.model('Exercise', schema);
+
+module.exports = Exercise;
