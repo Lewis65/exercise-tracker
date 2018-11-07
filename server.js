@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
-
+const moment = require('moment');
 const cors = require('cors')
 require('dotenv').config();
 
@@ -24,12 +24,14 @@ app.post('/api/exercise/new-user', (req, res) => {
   let user = new User({
     username: req.body.username
   });
+  //Check for existing username
   User.find({username: user.username}, (err, doc) => {
     if (err) {
       res.end(err)
     } else if (doc.length){
       res.end("Error: username already in use")
     } else {
+      //Save new user to db
       user.save((err, savedUser) => {
         if (err) {
           res.end(err);
@@ -43,7 +45,7 @@ app.post('/api/exercise/new-user', (req, res) => {
       })
     }
   })
-  //Create new user and save to db
+  
   
 })
 
@@ -65,8 +67,12 @@ app.get('/api/exercise/log?:userId', (req, res) => {
       res.send(err);
     } else {
       let log = user.exercises;
-      if(req.query.from && req.query.to){
-        //Check for `from` & `to` (yyyy-mm-dd) constraints
+      let dateObj = {}
+      //Check for `from` & `to` (yyyy-mm-dd) constraints
+      if(req.query.from || req.query.to){
+        if(req.query.from){
+          //If there's from and no to
+        }
       } else if (req.query.limit){
         //Check for `limit` (int) constraint
       }
@@ -86,7 +92,7 @@ app.get('/', (req, res) => {
 
 // Not found middleware
 app.use((req, res, next) => {
-  return next({status: 404, message: 'not found'})
+  return next({status: 404, message: '404 not found'})
 })
 
 // Error Handling middleware
