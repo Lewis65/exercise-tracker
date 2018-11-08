@@ -55,17 +55,24 @@ app.post('/api/exercise/new-user', (req, res) => {
   })  
 })
 
+//Get list of all users
 app.get('/api/exercise/users', (req, res) => {
-  //Get list of all users
-  //Display usernames and _ids in array
-  User.find((err, users) => {
+  
+  //Use projection to only select userIds and usernames
+  const projection = {
+    _id: 1,
+    username: 1
+  }
+
+  User.find({}, projection,(err, userList) => {
     if (err) {
       res.end(err);
     }
-    res.json(users);
+    res.json(userList);
   })
 })
 
+//Post form to add an exercise to a userId
 app.post('/api/exercise/add', (req, res) => {
 
   //Handle form data userId, description, duration, (optional)date
@@ -81,6 +88,8 @@ app.post('/api/exercise/add', (req, res) => {
 
   if (req.body.date) {
     exercise.date = moment.utc(req.body.date);
+  } else {
+    exercise.date = moment.utc()
   }
 
   console.log(exercise);
@@ -100,7 +109,18 @@ app.post('/api/exercise/add', (req, res) => {
             if (err2) {
               res.send(err2);
             } else {
-              User.findById(userThatExercised._id).populate('exercises').exec((err3, user) => {
+
+              const populate = {
+                path: 'exercises',
+                select: 'date description duration -_id',
+                options: {
+                  sort: {
+                    date: -1
+                  }
+                }
+              }
+
+              User.findById(userThatExercised._id).populate(populate).exec((err3, user) => {
                 if (err3) {
                   res.send(err3);
                 } else {
