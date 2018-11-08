@@ -147,12 +147,19 @@ app.get('/api/exercise/log?:userId', (req, res) => {
     if (err) {
       res.send(err);
     }
+    if (req.query.from) {
+      //Filter user.exercises to those created on or after `from` date
+      let filtered = user.exercises.filter(exercise => {moment(req.query.from).isBefore(moment(exercise.date))});
+      user.exercises = filtered;
+    }
+    if (req.query.to) {
+      //Filter user.exercises to those created on or before `to` date
+
+    }
     if (req.query.limit) {
       user.exercises.slice(0, req.query.limit);
-      res.json(user);
-    } else {
-      res.json(user);
     }
+    res.json(user);
   });
 })
 
