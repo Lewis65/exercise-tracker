@@ -87,7 +87,7 @@ app.post('/api/exercise/add', (req, res) => {
   })
 
   if (req.body.date) {
-    exercise.date = moment.utc(req.body.date);
+    exercise.date = moment.utc(req.body.date, "YYYY-MM-DD");
   } else {
     exercise.date = moment.utc()
   }
@@ -134,30 +134,46 @@ app.post('/api/exercise/add', (req, res) => {
     }
   })
 })
-
+//Return _id's exercise log as array with total exercise count
 app.get('/api/exercise/log?:userId', (req, res) => {
-  //Return _id's exercise log as array with total exercise count
-  console.log("req.query:", req.query);
-
+  
   if (!req.query.userId) {
     res.end("Error: No userId supplied")
   }
 
-  User.findById(req.body.userId).populate('exercises').exec((err, user) => {
+  //Options for populating the exercise references stored in a User
+  const populate = {
+    path: 'exercises',
+    select: 'date description duration -_id',
+    options: {
+      sort: {
+        date: -1
+      }
+    }
+  }
+
+  User.findById(req.query.userId).populate(populate).exec((err, user) => {
     if (err) {
       res.send(err);
     }
     if (req.query.from) {
       //Filter user.exercises to those created on or after `from` date
-      let filtered = user.exercises.filter(exercise => {moment(req.query.from).isBefore(moment(exercise.date))});
+      //Use !isAfter instead of isBefore to include the same day
+      let filtered = user.exercises.filter(exercise => {
+        return !moment.utc(req.query.from, "YYYY-MM-DD").isAfter(moment.utc(exercise.date, "YYYY-MM-DD"))
+      });
       user.exercises = filtered;
     }
     if (req.query.to) {
       //Filter user.exercises to those created on or before `to` date
-
+      let filtered = user.exercises.filter(exercise => {
+        return !moment.utc(req.query.to, "YYYY-MM-DD").isBefore(moment.utc(exercise.date, "YYYY-MM-DD"))
+      });
+      user.exercises = filtered;
     }
     if (req.query.limit) {
-      user.exercises.slice(0, req.query.limit);
+      //Use limit to return x most recent exercise entries
+      user.exercises = user.exercises.slice(0, req.query.limit);
     }
     res.json(user);
   });
