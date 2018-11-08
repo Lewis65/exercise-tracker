@@ -143,26 +143,15 @@ app.get('/api/exercise/log?:userId', (req, res) => {
     res.end("Error: No userId supplied")
   }
 
-  let criteria = {userId: req.query.userId};
-
-  //Check for `from` and `to` queries and apply to date ranges
-  if(req.query.from){
-    criteria.date.$gte = moment.utc(req.query.from);
-  }
-  if(req.query.to){
-    criteria.date.$lte = moment.utc(req.query.to);
-  }
-
-  console.log("criteria:", criteria);
-
-  Exercise.find(criteria, (err, exercises) => {
+  User.findById(req.body.userId).populate('exercises').exec((err, user) => {
     if (err) {
-      res.end(err);
+      res.send(err);
     }
     if (req.query.limit) {
-      res.json(exercises.slice(0, req.query.limit));
+      user.exercises.slice(0, req.query.limit);
+      res.json(user);
     } else {
-      res.json(exercises);
+      res.json(user);
     }
   });
 })
