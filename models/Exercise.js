@@ -4,7 +4,7 @@ const schema = new mongoose.Schema({
     description: String,
     duration: Number,
     date: Date,
-    userId: String
+    userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
 }, {timestamps: true});
 
 const Exercise = mongoose.model('Exercise', schema);
